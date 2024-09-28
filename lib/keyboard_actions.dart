@@ -98,6 +98,10 @@ class KeyboardActions extends StatefulWidget {
   /// [disableScroll] is `false`.
   final Duration timeToResize;
 
+  /// Override whether support for intrinsic width is added. Only applies if
+  /// [disableScroll] is `false` and [autoScroll] is `true`.
+  final bool addIntrinsicWidthSupport;
+
   const KeyboardActions({
     this.child,
     this.bottomAvoiderScrollPhysics,
@@ -115,6 +119,7 @@ class KeyboardActions extends StatefulWidget {
     this.timeToDismiss = const Duration(milliseconds: 110),
     this.timeToNextFocus = Duration.zero,
     this.timeToResize = Duration.zero,
+    this.addIntrinsicWidthSupport = true,
   }) : assert(child != null);
 
   @override
@@ -614,29 +619,33 @@ class KeyboardActionstate extends State<KeyboardActions>
     // We will call [_buildBar] and insert it via overlay on demand.
     // Add [_kBarSize] padding to ensure we scroll past the action bar.
 
+    final bottomAreaAvoider = BottomAreaAvoider(
+      key: bottomAreaAvoiderKey,
+      areaToAvoid: _offset,
+      overscroll: widget.overscroll,
+      duration: widget.timeToResize,
+      autoScroll: widget.autoScroll,
+      physics: widget.bottomAvoiderScrollPhysics,
+      child: widget.child,
+    );
+
     // We need to add this sized box to support embedding in IntrinsicWidth
     // areas, like AlertDialog. This is because of the LayoutBuilder KeyboardAvoider uses
     // if it has no child ScrollView.
     // If we don't, we get "LayoutBuilder does not support returning intrinsic dimensions".
     // See https://github.com/flutter/flutter/issues/18108.
     // The SizedBox can be removed when thats fixed.
-    return widget.enable && !widget.disableScroll
-        ? Material(
-            color: Colors.transparent,
-            child: SizedBox(
-              width: double.maxFinite,
-              key: _keyParent,
-              child: BottomAreaAvoider(
-                key: bottomAreaAvoiderKey,
-                areaToAvoid: _offset,
-                overscroll: widget.overscroll,
-                duration: widget.timeToResize,
-                autoScroll: widget.autoScroll,
-                physics: widget.bottomAvoiderScrollPhysics,
-                child: widget.child,
-              ),
-            ),
-          )
-        : widget.child!;
+    return !widget.enable || !widget.disableScroll
+        ? widget.child!
+        : widget.addIntrinsicWidthSupport
+            ? Material(
+                color: Colors.transparent,
+                child: SizedBox(
+                  width: double.maxFinite,
+                  key: _keyParent,
+                  child: bottomAreaAvoider,
+                ),
+              )
+            : bottomAreaAvoider;
   }
 }
