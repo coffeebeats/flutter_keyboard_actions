@@ -110,6 +110,14 @@ class KeyboardActions extends StatefulWidget {
   /// if [disableScroll] is `false`.
   final Curve scrollCurve;
 
+  /// Configure whether bottom view padding is "consumed" when finding the
+  /// height at which to display the keyboard actions bar. This is intended to
+  /// be use in conjunction with `SafeArea.maintainBottomViewPadding`, which can
+  /// help prevent jitter when opening and closing the keyboard.
+  ///
+  /// FIXME: Not confident this solution is correct, but it seems to work.
+  final bool consumeBottomViewPadding;
+
   const KeyboardActions({
     this.child,
     this.bottomAvoiderScrollPhysics,
@@ -130,6 +138,7 @@ class KeyboardActions extends StatefulWidget {
     this.addIntrinsicWidthSupport = true,
     this.resizeCurve = Curves.easeIn,
     this.scrollCurve = Curves.easeIn,
+    this.consumeBottomViewPadding = false,
   }) : assert(child != null);
 
   @override
@@ -327,7 +336,7 @@ class KeyboardActionstate extends State<KeyboardActions>
   @override
   void didChangeMetrics() {
     if (PlatformCheck.isAndroid) {
-      final value = WidgetsBinding.instance.window.viewInsets.bottom;
+      final value = View.of(context).viewInsets.bottom;
       bool keyboardIsOpen = value > 0;
       _onKeyboardChanged(keyboardIsOpen);
       isKeyboardOpen = keyboardIsOpen;
@@ -450,10 +459,15 @@ class KeyboardActionstate extends State<KeyboardActions>
         ? _kBarSize
         : 0; // offset for the actions bar
 
-    final keyboardHeight = EdgeInsets.fromWindowPadding(
-            WidgetsBinding.instance.window.viewInsets,
-            WidgetsBinding.instance.window.devicePixelRatio)
-        .bottom;
+    final view = View.of(context);
+    final viewInsets = view.viewInsets;
+    final viewPadding = view.viewPadding;
+    final devicePixelRatio = view.devicePixelRatio;
+
+    final keyboardHeight = (widget.consumeBottomViewPadding
+            ? (viewInsets.bottom - viewPadding.bottom)
+            : viewInsets.bottom) /
+        devicePixelRatio;
 
     newOffset += keyboardHeight; // + offset for the system keyboard
 
