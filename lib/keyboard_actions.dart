@@ -110,6 +110,12 @@ class KeyboardActions extends StatefulWidget {
   /// if [disableScroll] is `false`.
   final Curve scrollCurve;
 
+  /// Configure whether bottom view padding is "consumed" when finding the
+  /// height at which to display the keyboard actions bar. This is intended to
+  /// be use in conjunction with `SafeArea.maintainBottomViewPadding`, which can
+  /// help prevent jitter when opening and closing the keyboard.
+  final bool consumeBottomViewPadding;
+
   const KeyboardActions({
     this.child,
     this.bottomAvoiderScrollPhysics,
@@ -130,6 +136,7 @@ class KeyboardActions extends StatefulWidget {
     this.addIntrinsicWidthSupport = true,
     this.resizeCurve = Curves.easeIn,
     this.scrollCurve = Curves.easeIn,
+    this.consumeBottomViewPadding = false,
   }) : assert(child != null);
 
   @override
@@ -450,10 +457,14 @@ class KeyboardActionstate extends State<KeyboardActions>
         ? _kBarSize
         : 0; // offset for the actions bar
 
-    final keyboardHeight = EdgeInsets.fromWindowPadding(
-            WidgetsBinding.instance.window.viewInsets,
-            WidgetsBinding.instance.window.devicePixelRatio)
-        .bottom;
+    final viewInsets = WidgetsBinding.instance.window.viewInsets;
+    final viewPadding = WidgetsBinding.instance.window.viewPadding;
+    final devicePixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
+
+    final keyboardHeight = (widget.consumeBottomViewPadding
+            ? (viewInsets.bottom - viewPadding.bottom)
+            : viewInsets.bottom) /
+        devicePixelRatio;
 
     newOffset += keyboardHeight; // + offset for the system keyboard
 
