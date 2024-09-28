@@ -114,6 +114,8 @@ class KeyboardActions extends StatefulWidget {
   /// height at which to display the keyboard actions bar. This is intended to
   /// be use in conjunction with `SafeArea.maintainBottomViewPadding`, which can
   /// help prevent jitter when opening and closing the keyboard.
+  ///
+  /// FIXME: Not confident this solution is correct, but it seems to work.
   final bool consumeBottomViewPadding;
 
   const KeyboardActions({
