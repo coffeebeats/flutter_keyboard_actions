@@ -13,7 +13,6 @@ export 'keyboard_actions_item.dart';
 export 'keyboard_custom.dart';
 
 const double _kBarSize = 45.0;
-const Duration _timeToDismiss = Duration(milliseconds: 110);
 
 enum KeyboardActionsPlatform {
   ANDROID,
@@ -89,21 +88,34 @@ class KeyboardActions extends StatefulWidget {
   /// Override default height of the bar. `null` is dynamic height
   final double? barSize;
 
-  const KeyboardActions(
-      {this.child,
-      this.bottomAvoiderScrollPhysics,
-      this.enable = true,
-      this.autoScroll = true,
-      this.isDialog = false,
-      @Deprecated('Use tapOutsideBehavior instead.')
-      this.tapOutsideToDismiss = false,
-      this.tapOutsideBehavior = TapOutsideBehavior.none,
-      required this.config,
-      this.overscroll = 12.0,
-      this.disableScroll = false,
-      this.keepFocusOnTappingNode = false,
-      this.barSize = _kBarSize})
-      : assert(child != null);
+  /// Override the time to dismiss the keyboard actions bar.
+  final Duration timeToDismiss;
+
+  /// Override the time to wait until switching to the next focus.
+  final Duration timeToNextFocus;
+
+  /// Override the time to wait until resizing the scroll view. Only applies if
+  /// [disableScroll] is `false`.
+  final Duration timeToResize;
+
+  const KeyboardActions({
+    this.child,
+    this.bottomAvoiderScrollPhysics,
+    this.enable = true,
+    this.autoScroll = true,
+    this.isDialog = false,
+    @Deprecated('Use tapOutsideBehavior instead.')
+    this.tapOutsideToDismiss = false,
+    this.tapOutsideBehavior = TapOutsideBehavior.none,
+    required this.config,
+    this.overscroll = 12.0,
+    this.disableScroll = false,
+    this.keepFocusOnTappingNode = false,
+    this.barSize = _kBarSize,
+    this.timeToDismiss = const Duration(milliseconds: 110),
+    this.timeToNextFocus = Duration.zero,
+    this.timeToResize = Duration.zero,
+  }) : assert(child != null);
 
   @override
   KeyboardActionstate createState() => KeyboardActionstate();
@@ -237,12 +249,12 @@ class KeyboardActionstate extends State<KeyboardActions>
     //if it is a custom keyboard then wait until the focus was dismissed from the others
     if (_currentAction!.footerBuilder != null) {
       await Future.delayed(
-        Duration(milliseconds: _timeToDismiss.inMilliseconds),
+        Duration(milliseconds: widget.timeToDismiss.inMilliseconds),
       );
     }
 
     FocusScope.of(context).requestFocus(_currentAction!.focusNode);
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future.delayed(widget.timeToNextFocus);
     bottomAreaAvoiderKey.currentState?.scrollToOverscroll();
   }
 
@@ -372,7 +384,7 @@ class KeyboardActionstate extends State<KeyboardActions>
                     _buildBar(_currentAction!.displayArrows),
                   if (_currentFooter != null)
                     AnimatedContainer(
-                      duration: _timeToDismiss,
+                      duration: widget.timeToDismiss,
                       child: _currentFooter,
                       height:
                           _inserted ? _currentFooter!.preferredSize.height : 0,
@@ -395,7 +407,7 @@ class KeyboardActionstate extends State<KeyboardActions>
         _overlayEntry?.markNeedsBuild();
         // add a completer to indicate the completion of dismiss animation.
         _dismissAnimation = Completer<void>();
-        await Future.delayed(_timeToDismiss);
+        await Future.delayed(widget.timeToDismiss);
         _dismissAnimation?.complete();
         _dismissAnimation = null;
       }
@@ -514,7 +526,7 @@ class KeyboardActionstate extends State<KeyboardActions>
   /// Build the keyboard action bar based on the current [config].
   Widget _buildBar(bool displayArrows) {
     return AnimatedCrossFade(
-      duration: _timeToDismiss,
+      duration: widget.timeToDismiss,
       crossFadeState:
           _isShowing ? CrossFadeState.showFirst : CrossFadeState.showSecond,
       firstChild: Container(
@@ -618,9 +630,7 @@ class KeyboardActionstate extends State<KeyboardActions>
                 key: bottomAreaAvoiderKey,
                 areaToAvoid: _offset,
                 overscroll: widget.overscroll,
-                duration: Duration(
-                    milliseconds:
-                        (_timeToDismiss.inMilliseconds * 1.8).toInt()),
+                duration: widget.timeToResize,
                 autoScroll: widget.autoScroll,
                 physics: widget.bottomAvoiderScrollPhysics,
                 child: widget.child,
