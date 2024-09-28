@@ -334,7 +334,7 @@ class KeyboardActionstate extends State<KeyboardActions>
   @override
   void didChangeMetrics() {
     if (PlatformCheck.isAndroid) {
-      final value = WidgetsBinding.instance.window.viewInsets.bottom;
+      final value = View.of(context).viewInsets.bottom;
       bool keyboardIsOpen = value > 0;
       _onKeyboardChanged(keyboardIsOpen);
       isKeyboardOpen = keyboardIsOpen;
@@ -457,9 +457,10 @@ class KeyboardActionstate extends State<KeyboardActions>
         ? _kBarSize
         : 0; // offset for the actions bar
 
-    final viewInsets = WidgetsBinding.instance.window.viewInsets;
-    final viewPadding = WidgetsBinding.instance.window.viewPadding;
-    final devicePixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
+    final view = View.of(context);
+    final viewInsets = view.viewInsets;
+    final viewPadding = view.viewPadding;
+    final devicePixelRatio = view.devicePixelRatio;
 
     final keyboardHeight = (widget.consumeBottomViewPadding
             ? (viewInsets.bottom - viewPadding.bottom)
