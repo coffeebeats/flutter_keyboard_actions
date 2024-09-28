@@ -102,6 +102,14 @@ class KeyboardActions extends StatefulWidget {
   /// [disableScroll] is `false` and [autoScroll] is `true`.
   final bool addIntrinsicWidthSupport;
 
+  /// Override the resize animation curve in `BottomAreaAvoider`. Only applies
+  /// if [disableScroll] is `false`.
+  final Curve resizeCurve;
+
+  /// Override the scroll animation curve in `BottomAreaAvoider`. Only applies
+  /// if [disableScroll] is `false`.
+  final Curve scrollCurve;
+
   const KeyboardActions({
     this.child,
     this.bottomAvoiderScrollPhysics,
@@ -120,6 +128,8 @@ class KeyboardActions extends StatefulWidget {
     this.timeToNextFocus = Duration.zero,
     this.timeToResize = Duration.zero,
     this.addIntrinsicWidthSupport = true,
+    this.resizeCurve = Curves.easeIn,
+    this.scrollCurve = Curves.easeIn,
   }) : assert(child != null);
 
   @override
@@ -627,6 +637,8 @@ class KeyboardActionstate extends State<KeyboardActions>
       autoScroll: widget.autoScroll,
       physics: widget.bottomAvoiderScrollPhysics,
       child: widget.child,
+      resizeCurve: widget.resizeCurve,
+      scrollCurve: widget.scrollCurve,
     );
 
     // We need to add this sized box to support embedding in IntrinsicWidth

@@ -36,8 +36,11 @@ class BottomAreaAvoider extends StatefulWidget {
   /// Duration of the resize animation. Defaults to [defaultDuration]. To disable, set to [Duration.zero].
   final Duration duration;
 
-  /// Animation curve. Defaults to [defaultCurve]
-  final Curve curve;
+  /// Animation curve for resizing the container. Defaults to [defaultCurve].
+  final Curve resizeCurve;
+
+  /// Animation curve for scrolling to the next focus. Defaults to [defaultCurve].
+  final Curve scrollCurve;
 
   /// The [ScrollPhysics] of the [SingleChildScrollView] which contains child
   final ScrollPhysics? physics;
@@ -48,7 +51,8 @@ class BottomAreaAvoider extends StatefulWidget {
       required this.areaToAvoid,
       this.autoScroll = false,
       this.duration = defaultDuration,
-      this.curve = defaultCurve,
+      this.resizeCurve = defaultCurve,
+      this.scrollCurve = defaultCurve,
       this.overscroll = defaultOverscroll,
       this.physics})
       : //assert(child is ScrollView ? child.controller != null : true),
@@ -129,7 +133,7 @@ class BottomAreaAvoiderState extends State<BottomAreaAvoider> {
       color: Colors.transparent,
       padding: EdgeInsets.only(bottom: widget.areaToAvoid),
       duration: widget.duration,
-      curve: widget.curve,
+      curve: widget.resizeCurve,
       child: child,
     );
   }
@@ -159,8 +163,8 @@ class BottomAreaAvoiderState extends State<BottomAreaAvoider> {
   void scrollToOverscroll() {
     final focused = findFocusedObject(context.findRenderObject());
     if (focused == null || _scrollController == null) return;
-    scrollToObject(focused, _scrollController!, widget.duration, widget.curve,
-        widget.overscroll);
+    scrollToObject(focused, _scrollController!, widget.duration,
+        widget.scrollCurve, widget.overscroll);
   }
 }
 
