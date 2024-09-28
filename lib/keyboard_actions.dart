@@ -647,7 +647,7 @@ class KeyboardActionstate extends State<KeyboardActions>
     // If we don't, we get "LayoutBuilder does not support returning intrinsic dimensions".
     // See https://github.com/flutter/flutter/issues/18108.
     // The SizedBox can be removed when thats fixed.
-    return !widget.enable || !widget.disableScroll
+    return !widget.enable || widget.disableScroll
         ? widget.child!
         : widget.addIntrinsicWidthSupport
             ? Material(
