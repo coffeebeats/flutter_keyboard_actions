@@ -79,6 +79,9 @@ class KeyboardActions extends StatefulWidget {
   /// If you want to control the scroll physics of [BottomAreaAvoider] which uses a [SingleChildScrollView] to contain the child.
   final ScrollPhysics? bottomAvoiderScrollPhysics;
 
+  /// [ScrollController] used by child
+  final ScrollController? scrollController;
+
   /// If you are using [KeyboardActions] for just one textfield and don't need to scroll the content set this to `true`
   final bool disableScroll;
 
@@ -121,6 +124,7 @@ class KeyboardActions extends StatefulWidget {
   const KeyboardActions({
     this.child,
     this.bottomAvoiderScrollPhysics,
+    this.scrollController,
     this.enable = true,
     this.autoScroll = true,
     this.isDialog = false,
@@ -460,14 +464,20 @@ class KeyboardActionstate extends State<KeyboardActions>
         : 0; // offset for the actions bar
 
     final view = View.of(context);
-    final viewInsets = view.viewInsets;
-    final viewPadding = view.viewPadding;
-    final devicePixelRatio = view.devicePixelRatio;
 
-    final keyboardHeight = (widget.consumeBottomViewPadding
-            ? (viewInsets.bottom - viewPadding.bottom)
-            : viewInsets.bottom) /
-        devicePixelRatio;
+    final edgeInsetsFromViewInsets = EdgeInsets.fromViewPadding(
+      view.viewInsets,
+      view.devicePixelRatio,
+    );
+
+    final keyboardHeight = !widget.consumeBottomViewPadding
+        ? edgeInsetsFromViewInsets.bottom
+        : (edgeInsetsFromViewInsets -
+                EdgeInsets.fromViewPadding(
+                  view.viewPadding,
+                  view.devicePixelRatio,
+                ))
+            .bottom;
 
     newOffset += keyboardHeight; // + offset for the system keyboard
 
@@ -613,7 +623,7 @@ class KeyboardActionstate extends State<KeyboardActions>
                           EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
                       child: config?.defaultDoneWidget ??
                           Text(
-                            "Done",
+                            config?.defaultDoneButtonText ?? "Done",
                             style: TextStyle(
                               fontSize: 16.0,
                               fontWeight: FontWeight.w500,
@@ -652,6 +662,7 @@ class KeyboardActionstate extends State<KeyboardActions>
       physics: widget.bottomAvoiderScrollPhysics,
       child: widget.child,
       resizeCurve: widget.resizeCurve,
+      scrollController: widget.scrollController,
       scrollCurve: widget.scrollCurve,
     );
 
